@@ -15,6 +15,7 @@ Jumper Wires
 
 # Circuit Diagram:
 
+<img width="1295" height="727" alt="image" src="https://github.com/user-attachments/assets/7bf4fda6-c312-4f40-9521-511bad498458" />
 
 # Theory: 
 
@@ -26,9 +27,93 @@ When we apply an active high signal to the signal pin of the relay module from a
 
 
 # Program:
+```
+#include <Servo.h>
+#include <LiquidCrystal.h>
 
+LiquidCrystal lcd(A1,10,9,6,5,3);
+float value;
+int tmp = A0;
+const int pingPin = 7;
+int servoPin = 8;
 
+Servo servo1;
 
+void setup() {
+  Serial.begin(9600);
+  servo1.attach(servoPin);
+  lcd.begin(16, 2);
+
+  pinMode(2, INPUT);    // PIR sensor
+  pinMode(4, OUTPUT);   // PIR LED
+  pinMode(11, OUTPUT);  // General LED
+  pinMode(12, OUTPUT);  // Temp HIGH LED
+  pinMode(13, OUTPUT);  // Temp LOW LED
+  pinMode(A0, INPUT);   // Temperature sensor
+}
+
+void loop() {
+  long duration, cm;
+
+  // Ultrasonic
+  pinMode(pingPin, OUTPUT);
+  digitalWrite(pingPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pingPin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pingPin, LOW);
+
+  pinMode(pingPin, INPUT);
+  duration = pulseIn(pingPin, HIGH);
+  cm = microsecondsToCentimeters(duration);
+
+  if(cm < 40) {
+    servo1.write(90);
+    lcd.setCursor(0,1);
+    lcd.print("Door:OPEN   ");
+  } else {
+    servo1.write(0);
+    lcd.setCursor(0,1);
+    lcd.print("Door:CLOSED ");
+  }
+
+  // PIR sensor LED
+  int pir = digitalRead(2);
+  if(pir == HIGH) {
+    digitalWrite(4, HIGH);
+    lcd.setCursor(10,0);
+    lcd.print("LED:ON ");
+  } else {
+    digitalWrite(4, LOW);
+    lcd.setCursor(10,0);
+    lcd.print("LED:OFF");
+  }
+
+  // Temperature
+  value = analogRead(tmp) * 0.004882814;
+  value = (value - 0.5) * 100.0;
+  lcd.setCursor(0,0);
+  lcd.print("Tmp:");
+  lcd.print(value);
+
+  Serial.print("temperature: ");
+  Serial.println(value);
+
+  if(value > 20) {
+    digitalWrite(12, HIGH);  // Hot LED ON
+    digitalWrite(13, LOW);
+  } else {
+    digitalWrite(12, LOW);
+    digitalWrite(13, HIGH);  // Cold LED ON
+  }
+
+  delay(500);
+}
+
+long microsecondsToCentimeters(long microseconds) {
+  return microseconds / 29 / 2;
+}
+```
 # Procedure:
 •	Make the circuit connection as per the diagram. In the mobile, download and “Blynq IoT” application using Google play store and Install it. Create log in ID and Password.
 •	Connect the IN pin of the Relay module to D1 pin of NodeMCU (ESP8266).
@@ -47,6 +132,9 @@ When we apply an active high signal to the signal pin of the relay module from a
 
 
 # Output:
+<img width="662" height="250" alt="image" src="https://github.com/user-attachments/assets/e6645d4c-f43a-4480-98d4-0eb770914a06" />
 
 # Result:
+Thus, Home-Automation-System-with-IOT was successfully implemented using TinkerCad
+
 
